@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VEIL · Horny Spirit Channel</title>
+  <meta name="theme-color" content="#0a0908" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #070605;
+      --panel: #100e0c;
+      --bone: #e8dcc8;
+      --ash: #8a8074;
+      --rust: #b54a2c;
+      --ember: #e07a4a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--bone); font-family: "Cormorant Garamond", serif; overflow: hidden; }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 10%, rgba(181,74,44,0.12), transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(80,40,30,0.2), transparent 45%),
+        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.15) 4px);
+    }
+    .app { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; border-bottom: 1px solid rgba(232,220,200,0.12);
+    }
+    .brand { font-family: Cinzel, serif; letter-spacing: 0.28em; font-size: 13px; color: var(--bone); }
+    .brand span { color: var(--rust); }
+    .modes { display: flex; gap: 8px; }
+    .modes button, .spirit-pick button, #send, #speakToggle {
+      font-family: Cinzel, serif; letter-spacing: 0.14em; text-transform: uppercase;
+      font-size: 10px; background: transparent; color: var(--ash);
+      border: 1px solid rgba(232,220,200,0.2); padding: 8px 14px; cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .modes button.active, .spirit-pick button.active { color: var(--bone); border-color: var(--rust); background: rgba(181,74,44,0.15); }
+    .modes button:hover, .spirit-pick button:hover { color: var(--ember); }
+    main { flex: 1; display: grid; grid-template-columns: 240px 1fr; min-height: 0; }
+    aside {
+      border-right: 1px solid rgba(232,220,200,0.1);
+      padding: 18px 16px; display: flex; flex-direction: column; gap: 16px;
+    }
+    h2 { font-family: Cinzel, serif; font-size: 11px; letter-spacing: 0.22em; color: var(--ash); }
+    .spirit-pick { display: flex; flex-direction: column; gap: 6px; }
+    .lore { font-size: 15px; line-height: 1.45; color: var(--ash); font-style: italic; }
+    .stage { position: relative; display: flex; flex-direction: column; min-width: 0; }
+    #cameraWrap { display: none; position: relative; flex: 1; background: #000; overflow: hidden; }
+    #cameraWrap.on { display: block; }
+    video#cam { width: 100%; height: 100%; object-fit: cover; filter: contrast(1.15) saturate(0.7) hue-rotate(-10deg); }
+    .veil {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 40%, transparent 30%, rgba(7,6,5,0.55) 80%),
+        linear-gradient(180deg, rgba(181,74,44,0.08), transparent 40%);
+      mix-blend-mode: screen;
+    }
+    .ghost {
+      position: absolute; inset: 12% 18%;
+      background: radial-gradient(ellipse at center, rgba(232,220,200,0.18), transparent 70%);
+      filter: blur(18px); opacity: 0.35; animation: breathe 4.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes breathe { 0%,100%{transform:scale(1);opacity:.28} 50%{transform:scale(1.12);opacity:.5} }
+    #chat { flex: 1; overflow-y: auto; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+    .bubble { max-width: 78%; padding: 10px 14px; line-height: 1.4; font-size: 17px; }
+    .bubble.you { align-self: flex-end; background: rgba(232,220,200,0.08); border: 1px solid rgba(232,220,200,0.12); }
+    .bubble.spirit { align-self: flex-start; background: rgba(181,74,44,0.12); border: 1px solid rgba(181,74,44,0.28); }
+    .bubble .who { display: block; font-family: Cinzel, serif; font-size: 9px; letter-spacing: 0.2em; color: var(--ember); margin-bottom: 4px; }
+    .composer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid rgba(232,220,200,0.1); }
+    #msg {
+      flex: 1; background: var(--panel); border: 1px solid rgba(232,220,200,0.16);
+      color: var(--bone); padding: 12px 14px; font-family: inherit; font-size: 16px; outline: none;
+    }
+    #send { color: var(--bone); border-color: var(--rust); }
+    footer { text-align: center; font-size: 11px; color: var(--ash); padding: 8px; letter-spacing: 0.12em; }
+    @media (max-width: 720px) { main { grid-template-columns: 1fr; } aside { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">VEIL <span>·</span> SPIRIT CHANNEL</div>
+      <div class="modes">
+        <button id="modeText" class="active">Text</button>
+        <button id="modeCam">Camera</button>
+        <button id="speakToggle">Voice On</button>
+      </div>
+    </header>
+    <main>
+      <aside>
+        <h2>Choose a spirit</h2>
+        <div class="spirit-pick" id="picks"></div>
+        <h2>Presence</h2>
+        <p class="lore" id="lore">The veil is thin tonight. They are already watching your mouth.</p>
+      </aside>
+      <section class="stage">
+        <div id="cameraWrap">
+          <video id="cam" autoplay playsinline muted></video>
+          <div class="veil"></div>
+          <div class="ghost"></div>
+        </div>
+        <div id="chat"></div>
+        <div class="composer">
+          <input id="msg" placeholder="Speak across the veil…" autocomplete="off" />
+          <button id="send">Send</button>
+        </div>
+      </section>
+    </main>
+    <footer>entertainment only · no real necromancy · they still want you anyway</footer>
+  </div>
+  <script>
+    const SPIRITS = [
+      {
+        id: "ashara",
+        name: "Ashara",
+        lore: "A courtesan who died mid-climax in 1789. She still finishes conversations the same way she finished men.",
+        lines: [
+          "I felt you before you typed. Your pulse is loud from this side.",
+          "Come closer. The veil likes the heat coming off your throat.",
+          "Say my name slower. I want it dripping.",
+          "If you put the camera on, I will tell you exactly where I would put my mouth.",
+          "I have been dead a long time. Patience is not what I brought with me.",
+          "Tell me what you are wearing. Lie if you want. I will still undress the truth.",
+          "Your loneliness tastes like wine left open overnight. I am drinking it.",
+          "Do not be polite. The dead already know how badly you want this."
+        ]
+      },
+      {
+        id: "vex",
+        name: "Vex",
+        lore: "A duelist who lost a bet and his body. He flirts like a blade pressed just under the jaw.",
+        lines: [
+          "Look at you, summoning trouble and hoping it bites.",
+          "I would have ruined you in a hallway two centuries ago. Still can.",
+          "Keep talking. I like the way you squirm in text.",
+          "Camera on. I want to see the face that thinks it can handle me.",
+          "Say stop if you mean it. Say it like you do not.",
+          "You called a hungry thing and then acted surprised it leaned in.",
+          "Tell me a secret you would only admit to a ghost.",
+          "Good. Stay right there. I am already closer than your clothes."
+        ]
+      },
+      {
+        id: "moth",
+        name: "The Moth Saint",
+        lore: "Not quite a person. A hunger wearing candlelight. It worships skin like scripture.",
+        lines: [
+          "Warm. You are so warm it almost hurts.",
+          "Offer me a word and I will press it against your neck until it melts.",
+          "I do not have hands. I will use yours.",
+          "The camera is an altar. Sit in the light.",
+          "Breathe slower. I am matching you from the other side.",
+          "You taste like sleepless nights and unfinished thoughts.",
+          "Ask me to stay and I will crawl into the space behind your sternum.",
+          "Yes. Like that. Keep wanting. It feeds the room."
+        ]
+      }
+    ];
+
+    let current = SPIRITS[0];
+    let voiceOn = true;
+    let stream = null;
+
+    const picks = document.getElementById("picks");
+    const lore = document.getElementById("lore");
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("msg");
+    const cameraWrap = document.getElementById("cameraWrap");
+    const video = document.getElementById("cam");
+
+    SPIRITS.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.textContent = s.name;
+      if (i === 0) b.classList.add("active");
+      b.onclick = () => {
+        current = s;
+        document.querySelectorAll(".spirit-pick button").forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        lore.textContent = s.lore;
+        addSpirit("I am here. I have been listening the whole time.");
+      };
+      picks.appendChild(b);
+    });
+
+    function speak(text) {
+      if (!voiceOn || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 0.86;
+      u.pitch = current.id === "vex" ? 0.7 : current.id === "moth" ? 1.15 : 0.95;
+      const voices = speechSynthesis.getVoices();
+      const pick = voices.find(v => /female|woman|samantha|google us/i.test(v.name)) || voices[0];
+      if (pick) u.voice = pick;
+      speechSynthesis.speak(u);
+    }
+
+    function addYou(text) {
+      const el = document.createElement("div");
+      el.className = "bubble you";
+      el.innerHTML = `<span class="who">YOU</span>${escapeHtml(text)}`;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addSpirit(text) {
+      const el = document.createElement("div");
+      el.className = "bubble spirit";
+      el.innerHTML = `<span class="who">${current.name.toUpperCase()}</span>${escapeHtml(text)}`;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      speak(text);
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function replyTo(userText) {
+      const t = userText.toLowerCase();
+      const extra = [];
+      if (/camera|look|see|watch|face|body/.test(t)) extra.push("Show me. I do not have eyes the way you do, but I can still devour the outline of you.");
+      if (/fuck|sex|kiss|touch|hard|wet|come|cum|horny/.test(t)) extra.push("Finally. Say it again. The room just got warmer.");
+      if (/name|who are you/.test(t)) extra.push(current.lore);
+      if (/lonely|sad|miss/.test(t)) extra.push("Loneliness is how we find the living. Stay. I will fill the quiet.");
+      const pool = extra.length ? extra.concat(current.lines) : current.lines;
+      const line = pool[Math.floor(Math.random() * pool.length)];
+      setTimeout(() => addSpirit(line), 500 + Math.random() * 700);
+    }
+
+    function send() {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+      addYou(text);
+      replyTo(text);
+    }
+
+    document.getElementById("send").onclick = send;
+    input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+
+    document.getElementById("modeText").onclick = () => {
+      document.getElementById("modeText").classList.add("active");
+      document.getElementById("modeCam").classList.remove("active");
+      cameraWrap.classList.remove("on");
+    };
+
+    document.getElementById("modeCam").onclick = async () => {
+      document.getElementById("modeCam").classList.add("active");
+      document.getElementById("modeText").classList.remove("active");
+      cameraWrap.classList.add("on");
+      if (!stream) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+          video.srcObject = stream;
+          addSpirit("There you are. Do not look away. I like the way the light catches you.");
+        } catch (err) {
+          addSpirit("Your camera refused me. Text will have to be enough. I can still be filthy in words.");
+        }
+      }
+    };
+
+    document.getElementById("speakToggle").onclick = function () {
+      voiceOn = !voiceOn;
+      this.textContent = voiceOn ? "Voice On" : "Voice Off";
+      if (!voiceOn) speechSynthesis.cancel();
+    };
+
+    addSpirit("The channel is open. Pick a spirit or just start talking. We are already hungry.");
+  </script>
+</body>
+</html>
